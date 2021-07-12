@@ -6,8 +6,8 @@ class Plane {
 
         this.throttle = 0;
 
-        this.w = planeImg.width * scale;
-        this.h = planeImg.height * scale;
+        this.w = 16;
+        this.h = 4.5;
 
         this.thrust = 180000;
         this.coreExhaustVelocity = 540;
@@ -22,7 +22,7 @@ class Plane {
         this.minDrag = 0.016;
 
         this.mass = 21000;
-        this.wingArea = 60;
+        this.wingArea = 50;
         this.frontalArea = 5;
 
         const options = {

@@ -5,6 +5,8 @@ class Plane {
     constructor(x, y, scale){
 
         this.throttle = 0;
+        this.brake = 0;
+        this.flaps = 0;
 
         this.w = 16;
         this.h = 4.5;
@@ -21,11 +23,15 @@ class Plane {
 
         this.minDrag = 0.016;
 
+        this.brakeMultiplier = 1;
+        this.brakeArea = 5;
+
         this.mass = 21000;
-        this.wingArea = 50;
+        this.wingArea = 45;
         this.frontalArea = 5;
 
         this.maxAngle = 0.1;
+        this.stabilityRange = 1;
 
         const options = {
             frictionAir:0,
@@ -68,8 +74,6 @@ class Plane {
 
             this.dragCoefficient = 1- cos(2* this.angleOfAttack) + this.minDrag
 
-            
-            console.log(this.body.speed, this.body.inertia);
             this.drag = Math.min(Math.abs(airDensity * this.dragCoefficient * this.frontalArea * ((this.speed ** 2) / 2), Math.abs(this.speed * this.mass)));
 
             var A = degrees(this.angleOfAttack);
@@ -81,6 +85,11 @@ class Plane {
         
             this.lift = airDensity * this.liftCoefficient * this.wingArea * (this.speed  ** 2) / 2
 
+            if (this.brake > 0){
+                this.brakeCoefficient = (1 - cos(2* this.angleOfAttack - PI)) * this.brakeMultiplier * (this.brake/100)
+
+                this.braking = Math.min(Math.abs(airDensity * this.brakeCoefficient * this.brakeArea * (this.speed  ** 2) / 2), Math.abs(this.speed * this.mass));
+            }
     
 
         } else {
@@ -93,6 +102,8 @@ class Plane {
             this.drag = 0
             this.liftCoefficient = 0;
             this.lift = 0;
+            this.brakeCoefficient=0;
+            this.braking=0;
     
         }
 
@@ -113,16 +124,21 @@ class Plane {
         var liftV = p5.Vector.fromAngle(this.velocityAngle - PI/2 , this.lift * (tScale ** 2)  / this.mass);
         var thrustV = p5.Vector.fromAngle(this.body.angle, this.thrust * (tScale ** 2)  /this.mass);
 
-        if (this.altitude > 0){
-            var gV = new p5.Vector(0, Math.min(g, this.altitude));
-        } else {
-            var gV = new p5.Vector(0, 0);
-        }
 
         var combination = thrustV.add(dragV.add(liftV))
         this.acceleration = combination.mag() / g
 
-        combination.add(gV);
+        if (this.altitude > 0){
+
+            combination.add(new p5.Vector(0, Math.min(g * (tScale ** 2), this.altitude)));
+        } 
+
+        if (this.brake > 0){
+
+            combination.add(p5.Vector.fromAngle(this.velocityAngle, -this.braking * (tScale ** 2)  /this.mass));
+
+        }
+
 
         Body.setVelocity(this.body, velocity.add(combination));
 
@@ -131,10 +147,13 @@ class Plane {
 
     stabilise(){
 
-        var adjustment = Math.min(Math.abs(this.body.angle - this.idealAngle), this.maxAngle);
-        var sign = Math.sign(this.body.angle - this.idealAngle);
+        var difference = Math.abs(this.body.angle - this.idealAngle)
+        if (difference < this.stabilityRange){
+            var adjustment = Math.min(Math.abs(this.body.angle - this.idealAngle), this.maxAngle);
+            var sign = Math.sign(this.body.angle - this.idealAngle);
 
-        Body.rotate(this.body, adjustment * sign * -1, this.body.position);
+            Body.rotate(this.body, adjustment * sign * -1, this.body.position);
+        }
     }
 
     rotate(angle){
@@ -167,8 +186,10 @@ class Plane {
         textSize(10);
         stroke(0)
         fill(0)
-        text('Throttle: ' + this.throttle  + '\nAA: ' + round(degrees(this.angleOfAttack),2) + ' \nAirSpeed: ' + round(this.airSpeed,2)  + 'm/s \nDc: ' + round(this.dragCoefficient,2) + ' \nDrag: ' + round(this.drag,2)  + ' \nLc: ' + round(this.liftCoefficient,2) + ' \nLift: ' + round(this.lift,2)  + ' \nAltitude: ' + round(this.altitude,2) + 'm \nMFR: ' + round(this.massFlowRate,2) + ' \nThrust: ' + round(this.thrust / 1000,2) + 'kN\n ACC: ' + round(this.acceleration,2) + 'g', -width/2 +10, height/2 - 140);
+        text('AA: ' + round(degrees(this.angleOfAttack),2) + ' \nAirSpeed: ' + round(this.airSpeed,2)  + 'm/s \nDc: ' + round(this.dragCoefficient,2) + ' \nDrag: ' + round(this.drag,2)  + ' \nLc: ' + round(this.liftCoefficient,2) + ' \nLift: ' + round(this.lift,2)  + ' \nAltitude: ' + round(this.altitude,2) + 'm \nMFR: ' + round(this.massFlowRate,2) + ' \nThrust: ' + round(this.thrust / 1000,2) + 'kN\nACC: ' + round(this.acceleration,2) + 'g\nBc: ' + round(this.brakeCoefficient,2) + '\nBraking: ' + round(this.braking,2), -width/2 +10, height/2 - 160);
 
+
+        text('Throttle: ' + this.throttle  + '\nBraking: ' + this.brake  + '\nFlaps: ' + this.flaps  + '\n', width/2 -100, height/2 - 160);
 
 
 

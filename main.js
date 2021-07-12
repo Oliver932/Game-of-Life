@@ -74,13 +74,33 @@ function draw() {
 
         plane.rotate(-0.001);
 
-    } else if (keyIsDown(UP_ARROW)) {
+    } 
+    
+    if (keyIsDown(UP_ARROW)) {
 
         plane.throttle = Math.min(100, plane.throttle + 1);
 
     } else if (keyIsDown(DOWN_ARROW)) {
 
         plane.throttle = Math.max(0, plane.throttle - 1);
+    }
+
+    if (keyIsDown(83)){
+
+        plane.brake = 100;
+
+    } else {
+
+        plane.brake = 0;
+    }
+
+    if (keyIsDown(65)){
+
+        plane.flaps = 100;
+
+    } else {
+
+        plane.flaps = 0;
     }
 
     // }  else if (keyIsDown(ENTER)){

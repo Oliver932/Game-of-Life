@@ -25,16 +25,20 @@ class Plane {
         this.wingArea = 50;
         this.frontalArea = 5;
 
+        this.maxAngle = 0.1;
+
         const options = {
             frictionAir:0,
             friction:0,
-            restitution:0.5
+            restitution:0
         }
 
         this.body = Bodies.rectangle(x, y, this.w, this.h, options);
         
         Body.setMass(this.body, this.mass)
         Composite.add(world, this.body)
+
+        this.idealAngle = this.body.angle;
 
 
         // Body.setVelocity(this.body, {x:3, y:0});
@@ -43,17 +47,20 @@ class Plane {
 
     update(){
 
+        this.stabilise();
+
         angleMode(RADIANS)
 
         var velocity = new p5.Vector(this.body.velocity.x, this.body.velocity.y)
 
-        this.altitude = height - this.body.position.y - this.h/2
+        this.altitude = height - this.body.position.y
 
         if (velocity.mag() > 0){
 
             const force = p5.Vector.fromAngle(this.body.angle, 1);
 
             this.angleOfAttack = force.angleBetween(velocity);
+            this.velocityAngle = velocity.heading();
 
 
             this.airSpeed = (cos(this.angleOfAttack) * velocity.mag());
@@ -81,6 +88,7 @@ class Plane {
 
             this.airSpeed = 0; 
             this.angleOfAttack = 0;
+            this.velocityAngle = 0;
             this.dragCoefficient = 0;
             this.drag = 0
             this.liftCoefficient = 0;
@@ -101,27 +109,38 @@ class Plane {
             this.thrust = 0;
         }
 
-        var dragV = p5.Vector.fromAngle(this.body.angle - this.angleOfAttack, -this.drag * (tScale ** 2) / this.mass);
-        var liftV = p5.Vector.fromAngle(this.body.angle - this.angleOfAttack - PI/2 , this.lift * (tScale ** 2)  / this.mass);
+        var dragV = p5.Vector.fromAngle(this.velocityAngle, -this.drag * (tScale ** 2) / this.mass);
+        var liftV = p5.Vector.fromAngle(this.velocityAngle - PI/2 , this.lift * (tScale ** 2)  / this.mass);
         var thrustV = p5.Vector.fromAngle(this.body.angle, this.thrust * (tScale ** 2)  /this.mass);
 
         if (this.altitude > 0){
-            var gV = new p5.Vector(0, g );
+            var gV = new p5.Vector(0, Math.min(g, this.altitude));
         } else {
             var gV = new p5.Vector(0, 0);
         }
 
-        var combination = thrustV.add(dragV.add(liftV.add(gV)))
+        var combination = thrustV.add(dragV.add(liftV))
         this.acceleration = combination.mag() / g
+
+        combination.add(gV);
 
         Body.setVelocity(this.body, velocity.add(combination));
 
 
     }
 
+    stabilise(){
+
+        var adjustment = Math.min(Math.abs(this.body.angle - this.idealAngle), this.maxAngle);
+        var sign = Math.sign(this.body.angle - this.idealAngle);
+
+        Body.rotate(this.body, adjustment * sign * -1, this.body.position);
+    }
+
     rotate(angle){
 
-        Body.rotate(this.body, angle, this.body.position);
+        this.idealAngle += angle;
+
     }
 
     show(){

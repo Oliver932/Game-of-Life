@@ -1,5 +1,5 @@
 const {Engine, Bodies, MouseConstraint, World, Mouse, Constraint, Body, Vector, Composite} = Matter;
-const tScale = 1;
+const tScale = 0.5;
 const mScale = 1;
 const g = 9.81
 const airDensity = 1.225;
@@ -25,10 +25,11 @@ function setup() {
     canvas = createCanvas(innerWidth, innerHeight);
     console.log(Matter);
 
+
     const options = {
 
         gravity:{
-            scale:1/25  * (tScale ** 2) ,
+            scale:1,
             y:0
         }
     }
@@ -67,11 +68,11 @@ function draw() {
 
     if (keyIsDown(RIGHT_ARROW)) {
 
-        plane.rotate(0.01);
+        plane.rotate(0.001);
     
     } else if (keyIsDown(LEFT_ARROW)) {
 
-        plane.rotate(-0.01);
+        plane.rotate(-0.001);
 
     } else if (keyIsDown(UP_ARROW)) {
 

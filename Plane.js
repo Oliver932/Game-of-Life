@@ -12,7 +12,7 @@ class Plane {
         this.h = 4.5;
 
         this.thrust = 180000;
-        this.coreExhaustVelocity = 540;
+        this.coreExhaustVelocity = 340;
         this.fanExhaustVelocity = 540;
         this.offset = 5
 
@@ -25,6 +25,11 @@ class Plane {
 
         this.brakeMultiplier = 1;
         this.brakeArea = 5;
+
+        this.dragMultiplier = 2/3;
+
+        this.flapLift = 0.7;
+        this.flapDrag = 1.5;
 
         this.mass = 21000;
         this.wingArea = 45;
@@ -72,7 +77,7 @@ class Plane {
             this.airSpeed = (cos(this.angleOfAttack) * velocity.mag());
             this.speed = this.body.speed
 
-            this.dragCoefficient = 1- cos(2* this.angleOfAttack) + this.minDrag
+            this.dragCoefficient = this.dragMultiplier * (1- cos(2* this.angleOfAttack)) + this.minDrag + (this.flapDrag * this.flaps / 100)
 
             this.drag = Math.min(Math.abs(airDensity * this.dragCoefficient * this.frontalArea * ((this.speed ** 2) / 2), Math.abs(this.speed * this.mass)));
 
@@ -81,7 +86,7 @@ class Plane {
                 A += 180
             }
 
-            this.liftCoefficient = (1.5599376454047093 / (10 ** 18)) * (A ** 10) - (1.2817626387384176 / (10 ** 15)) * (A ** 9) + (4.3711814292424807 / (10 ** 13)) * (A ** 8) - (7.9320282453665939 / (10 ** 11)) * (A ** 7) + (8.0646679763492981 / (10 ** 9)) * (A ** 6) - (4.2358155634570111 / (10 ** 7)) * (A ** 5) + (5.9484212356433018 / (10 ** 6)) * (A ** 4) + (4.4487443870946638 / (10 ** 4)) * (A ** 3) - (2.1180232557629925 / (10 ** 2)) * (A ** 2) + (2.9684208383947552 / (10)) * (A) + (3.5589068758850130 / (10 ** 2))
+            this.liftCoefficient = (1.5599376454047093 / (10 ** 18)) * (A ** 10) - (1.2817626387384176 / (10 ** 15)) * (A ** 9) + (4.3711814292424807 / (10 ** 13)) * (A ** 8) - (7.9320282453665939 / (10 ** 11)) * (A ** 7) + (8.0646679763492981 / (10 ** 9)) * (A ** 6) - (4.2358155634570111 / (10 ** 7)) * (A ** 5) + (5.9484212356433018 / (10 ** 6)) * (A ** 4) + (4.4487443870946638 / (10 ** 4)) * (A ** 3) - (2.1180232557629925 / (10 ** 2)) * (A ** 2) + (2.9684208383947552 / (10)) * (A) + (3.5589068758850130 / (10 ** 2)) + (this.flapLift * this.flaps / 100)
         
             this.lift = airDensity * this.liftCoefficient * this.wingArea * (this.speed  ** 2) / 2
 
@@ -89,6 +94,10 @@ class Plane {
                 this.brakeCoefficient = (1 - cos(2* this.angleOfAttack - PI)) * this.brakeMultiplier * (this.brake/100)
 
                 this.braking = Math.min(Math.abs(airDensity * this.brakeCoefficient * this.brakeArea * (this.speed  ** 2) / 2), Math.abs(this.speed * this.mass));
+            } else{
+
+                this.brakeCoefficient = 0;
+                this.braking = 0;
             }
     
 

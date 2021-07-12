@@ -1,90 +1,111 @@
+const {Engine, Bodies, MouseConstraint, World, Mouse, Constraint, Body, Vector, Composite} = Matter;
+const tScale = 1;
+const mScale = 1;
+const g = 9.81
+const airDensity = 1.225;
 
-var cellSize = 3;
-var columns = Math.floor(innerWidth / cellSize);
-var rows = Math.floor(innerHeight / cellSize);
+let ground;
+let boxes = [];
+let plane;
+let world,engine;
+let canvas;
 
-var perlinScale = 0.04
-var perlinThreshold = 0.5;
+let boxImg;
+let planeImg;
+
+
+function preload(){
+
+    boxImg = loadImage('box.png');
+    planeImg = loadImage('F35.png');
+}
 
 function setup() {
 
-    createCanvas(columns * cellSize, rows * cellSize);
-    createCells();
+    canvas = createCanvas(innerWidth, innerHeight);
+    console.log(Matter);
+
+    const options = {
+
+        gravity:{
+            scale:1/25  * (tScale ** 2) ,
+            y:0
+        }
+    }
+
+    engine = Engine.create(options);
+    world = engine.world;
+
+
+    ground = new Ground(0, height+100, width * 2000, 200);
+
+    // for (let u=0; u<4; u++){
+
+    //     for (let i=0; i<8; i++){
+    //         boxes.push(new Box(1000 + u * 65, height - (i * 60), 60, 60));
+    //     }
+    // }
+
+    plane = new Plane(350, height-10, 0.05);
 
 }
+
+// function keyPressed(){
+
+//     if (keyCode == LEFT_ARROW){
+
+//         while (keyIsPressed === true){
+
+//             plane.rotate(-0.05);
+//         }
+//     }
+// }
 
 
 function draw() {
 
-    background(200);
 
-    drawGrid();
+    if (keyIsDown(RIGHT_ARROW)) {
 
-    for (let index = 0; index < Cells.length; index++) {
-        const cell = Cells[index];
+        plane.rotate(0.01);
+    
+    } else if (keyIsDown(LEFT_ARROW)) {
 
-        cell.draw();
-        
+        plane.rotate(-0.01);
+
+    } else if (keyIsDown(UP_ARROW)) {
+
+        plane.throttle = Math.min(100, plane.throttle + 1);
+
+    } else if (keyIsDown(DOWN_ARROW)) {
+
+        plane.throttle = Math.max(0, plane.throttle - 1);
     }
 
-}
+    // }  else if (keyIsDown(ENTER)){
+
+    //     plane.update();
+    //     Engine.update(engine);
+    // }
+
+    Engine.update(engine);
+    plane.update();
+
+    background(255);
+    translate(innerWidth/2, innerHeight/2);
+    rotate(-plane.body.angle * 1);
+    translate(-innerWidth/2, -innerHeight/2);
+
+    translate(-plane.body.position.x + (innerWidth/2), -plane.body.position.y+ (innerHeight/2));
 
 
-var Cells = [];
-
-class Cell {
-
-    constructor(x, y) {
-
-        this.x = x;
-        this.y = y;
-
-        Cells.push(this);
-
+    ground.show();
+    for (let box of boxes){
+        box.show();
     }
 
-    draw(){
-
-        fill(0);
-        noStroke();
-        rect(this.x * cellSize, this.y * cellSize, cellSize, cellSize)
-    }
-}
-
-function drawGrid(){
-
-    stroke(0);
-    strokeWeight(cellSize / 5)
-
-    for (let x = 0; x <= columns; x++) {
-        
-        line(x * cellSize, 0, x * cellSize, innerHeight)
-    }
-
-    for (let y = 0; y <= rows; y++) {
-
-        line(0, y * cellSize, innerWidth, y * cellSize)
-    }
+    plane.show();
 
 
 }
-
-function createCells() {
-
-    for (let x = 0; x < columns; x++) {
-
-        for (let y = 0; y < rows; y++) {
-
-            var val = noise(x * perlinScale, y * perlinScale)
-
-            if (val > perlinThreshold) {
-
-                new Cell(x, y);
-            }
-        }
-    }
-}
-
-
-
 

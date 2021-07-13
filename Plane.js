@@ -220,7 +220,7 @@ class Plane {
         textSize(10);
         stroke(0)
         fill(0)
-        text('AirDensity: ' + round(this.airDensity,2) + 'Kg/m**3 \nAA: ' + round(degrees(this.angleOfAttack),2) + ' \nAirSpeed: ' + round(this.airSpeed,2)  + 'm/s \nDc: ' + round(this.dragCoefficient,2) + ' \nDrag: ' + round(this.drag,2)  + 'N \nLc: ' + round(this.liftCoefficient,2) + ' \nLift: ' + round(this.lift,2)  + 'N \nAltitude: ' + round(this.altitude,2) + 'm \nMFR: ' + round(this.massFlowRate,2) + 'Kg/s \nThrust: ' + round(this.thrust / 1000,2) + 'kN\nACC: ' + round(this.acceleration,2) + 'g\nBc: ' + round(this.brakeCoefficient,2) + '\nBraking: ' + round(this.braking,2) + 'N', -width/2 +10, height/2 - 160);
+        text('AirDensity: ' + round(this.airDensity,2) + 'Kg/m**3 \nAA: ' + round(degrees(this.angleOfAttack),2) + ' \nAirSpeed: ' + round(this.airSpeed,2)  + 'm/s \nDc: ' + round(this.dragCoefficient,2) + ' \nDrag: ' + round(this.drag / 1000,2)  + 'kN \nLc: ' + round(this.liftCoefficient,2) + ' \nLift: ' + round(this.lift/1000,2)  + 'kN \nAltitude: ' + round(this.altitude / 1000,2) + 'km \nMFR: ' + round(this.massFlowRate,2) + 'kg/s \nThrust: ' + round(this.thrust / 1000,2) + 'kN\nACC: ' + round(this.acceleration,2) + 'g\nBc: ' + round(this.brakeCoefficient,2) + '\nBraking: ' + round(this.braking/1000,2) + 'kN', -width/2 +10, height/2 - 160);
 
 
         text('Throttle: ' + round(this.throttle)  + '% \nBraking: ' + round(this.brake)  + '% \nFlaps: ' + round(this.flaps)  + '% \nAfterBurn: ' + round(this.afterBurn)  + '% \nSpoiler: ' + round(this.spoiler)  + '% \n', width/2 -100, height/2 - 160);
@@ -230,6 +230,15 @@ class Plane {
 
         stroke(0, 0, 255);
         arc(0 , 0, 700, 700, this.gAngle-0.2, this.gAngle + 0.2);
+
+        push()
+        noStroke();
+        fill(0, 0, 255)
+        textSize(20)
+        textAlign(CENTER);
+        rotate(this.gAngle - PI / 2)
+        text(round(this.altitude / 1000,2) + 'km', 0, 750 / 2)
+        pop()
 
         const vWidth = 0.02
 

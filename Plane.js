@@ -45,7 +45,7 @@ class Plane {
         this.stabilityRange = 1;
 
         const options = {
-            frictionAir:0.0005,
+            frictionAir:0,
             friction:0,
             restitution:0
         }
@@ -56,6 +56,8 @@ class Plane {
         Composite.add(world, this.body)
 
         this.idealAngle = this.body.angle;
+
+
 
 
         // Body.setVelocity(this.body, {x:3, y:0});
@@ -69,6 +71,7 @@ class Plane {
         angleMode(RADIANS)
 
         var velocity = new p5.Vector(this.body.velocity.x, this.body.velocity.y)
+        this.velocityAngle = velocity.heading();
 
 
         this.altitude = height - this.body.position.y
@@ -80,7 +83,6 @@ class Plane {
             const force = p5.Vector.fromAngle(this.body.angle, 1);
 
             this.angleOfAttack = force.angleBetween(velocity);
-            this.velocityAngle = velocity.heading();
 
 
             this.airSpeed = (cos(this.angleOfAttack) * velocity.mag());
@@ -157,8 +159,18 @@ class Plane {
 
         }
 
+        this.accelerationAngle = combination.heading();
+
 
         Body.setVelocity(this.body, velocity.add(combination));
+
+        // calculations for indicator rings
+
+
+        this.gAngle = -this.body.angle + PI/2;
+        this.vAngle =  this.velocityAngle - this.body.angle;
+        this.aAngle = this.accelerationAngle - this.body.angle;
+
 
 
     }
@@ -213,10 +225,32 @@ class Plane {
 
         text('Throttle: ' + round(this.throttle)  + '% \nBraking: ' + round(this.brake)  + '% \nFlaps: ' + round(this.flaps)  + '% \nAfterBurn: ' + round(this.afterBurn)  + '% \nSpoiler: ' + round(this.spoiler)  + '% \n', width/2 -100, height/2 - 160);
 
-        // noFill();
-        // stroke(0, 0, 255);
-        // strokeWeight(10);
-        // arc(0 , 0, 700, 700, 0, PI + QUARTER_PI);
+        noFill();
+        strokeWeight(10);
+
+        stroke(0, 0, 255);
+        arc(0 , 0, 700, 700, this.gAngle-0.2, this.gAngle + 0.2);
+
+        const vWidth = 0.02
+
+
+        stroke(0, 100, 0);
+        if (Math.abs(this.vAngle) > vWidth){
+
+
+            if(this.vAngle < 0){
+                arc(0 , 0, 600, 600, this.vAngle, 0);
+            } else {
+                arc(0 , 0, 600, 600, 0, this.vAngle);
+            }
+
+        }
+
+        stroke(0, 255, 0);
+        arc(0 , 0, 600, 600, this.vAngle - vWidth, this.vAngle + vWidth);
+
+        stroke(255, 0, 0);
+        arc(0 , 0, 650, 650, this.aAngle - vWidth, this.aAngle + vWidth);
 
         pop();
     }

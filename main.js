@@ -1,8 +1,15 @@
 const {Engine, Bodies, MouseConstraint, World, Mouse, Constraint, Body, Vector, Composite} = Matter;
-const tScale = 0.5;
+const tScale =0.65;
 const mScale = 1;
 const g = 9.81
+
 const airDensity = 1.225;
+
+const airDensityOffset = 0.8;
+const airDensityMultiplier = 5000;
+
+const responsiveness = 1.1;
+const pitchResponsiveness = 5;
 
 let ground;
 let boxes = [];
@@ -65,16 +72,23 @@ function setup() {
 
 function draw() {
 
+    var rotation = 0;
+
 
     if (keyIsDown(RIGHT_ARROW)) {
 
-        plane.rotate(0.001);
+
+        rotation =  Math.max(0.005, rotation * pitchResponsiveness)
+        plane.rotate(rotation);
     
     } else if (keyIsDown(LEFT_ARROW)) {
 
-        plane.rotate(-0.001);
+        rotation =  Math.min(-0.005, rotation * pitchResponsiveness)
+        plane.rotate(rotation);
 
-    } 
+    } else{
+        rotation = 0;
+    }
     
     if (keyIsDown(UP_ARROW)) {
 
@@ -87,7 +101,7 @@ function draw() {
 
     if (keyIsDown(83)){
 
-        plane.brake = 100;
+        plane.brake = Math.min(100, Math.max(responsiveness, plane.brake * responsiveness));
 
     } else {
 
@@ -96,11 +110,29 @@ function draw() {
 
     if (keyIsDown(65)){
 
-        plane.flaps = 100;
+        plane.flaps = Math.min(100, Math.max(responsiveness, plane.flaps * responsiveness));
 
     } else {
 
         plane.flaps = 0;
+    }
+
+    if (keyIsDown(87)){
+
+        plane.afterBurn = Math.min(100, Math.max(responsiveness, plane.afterBurn * responsiveness));
+
+    } else {
+
+        plane.afterBurn = 0;
+    }
+
+    if (keyIsDown(68)){
+
+        plane.spoiler = Math.min(100, Math.max(responsiveness, plane.spoiler * responsiveness));
+
+    } else {
+
+        plane.spoiler = 0;
     }
 
     // }  else if (keyIsDown(ENTER)){

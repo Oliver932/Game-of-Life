@@ -2,6 +2,7 @@
 const tScale =0.65;
 const mScale = 1;
 const g = 9.81
+const vSound = 343;
 
 const airDensity = 1.225;
 
@@ -30,7 +31,7 @@ function setup() {
 
     canvas = createCanvas(innerWidth, innerHeight);
 
-    plane = new Plane(350, height-40, 0.05);
+    plane = new Plane(350, height-40);
 
 }
 
@@ -104,7 +105,7 @@ function draw() {
 
     plane.update();
 
-    background(255);
+    background(148, 250, 255);
     translate(innerWidth/2, innerHeight/2);
     rotate(-plane.angle * 1);
     translate(-innerWidth/2, -innerHeight/2);
@@ -112,7 +113,9 @@ function draw() {
     translate(-plane.position.x + (innerWidth/2), -plane.position.y+ (innerHeight/2));
 
 
-    line(-width * 1000, height, width * 10000, height)
+    stroke(0);
+    fill(33, 181, 45);
+    rect(-width * 1000, height, width * 10000, width)
 
     plane.show();
 

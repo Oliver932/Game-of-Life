@@ -2,7 +2,7 @@
 
 class Plane {
 
-    constructor(x, y, scale){
+    constructor(x, y){
 
         this.throttle = 0;
         this.brake = 0;
@@ -216,7 +216,7 @@ class Plane {
         textSize(10);
         stroke(0)
         fill(0)
-        text('AirDensity: ' + round(this.airDensity,2) + 'Kg/m**3 \nAA: ' + round(degrees(this.angleOfAttack),2) + ' \nAirSpeed: ' + round(this.airSpeed,2)  + 'm/s \nDc: ' + round(this.dragCoefficient,2) + ' \nDrag: ' + round(this.drag / 1000,2)  + 'kN \nLc: ' + round(this.liftCoefficient,2) + ' \nLift: ' + round(this.lift/1000,2)  + 'kN \nAltitude: ' + round(this.altitude / 1000,2) + 'km \nMFR: ' + round(this.massFlowRate,2) + 'kg/s \nThrust: ' + round(this.thrust / 1000,2) + 'kN\nACC: ' + round(this.acceleration,2) + 'g\nBc: ' + round(this.brakeCoefficient,2) + '\nBraking: ' + round(this.braking/1000,2) + 'kN', -width/2 +10, height/2 - 160);
+        text('AirDensity: ' + round(this.airDensity,2) + 'Kg/m**3 \nAirSpeed: ' + round(this.airSpeed,2)  + 'm/s \nDc: ' + round(this.dragCoefficient,2) + ' \nDrag: ' + round(this.drag / 1000,2)  + 'kN \nLc: ' + round(this.liftCoefficient,2) + ' \nLift: ' + round(this.lift/1000,2)  + 'kN \nMFR: ' + round(this.massFlowRate,2) + 'kg/s \nThrust: ' + round(this.thrust / 1000,2) + 'kN\nBc: ' + round(this.brakeCoefficient,2) + '\nBraking: ' + round(this.braking/1000,2) + 'kN', -width/2 +10, height/2 - 160);
 
 
         text('Throttle: ' + round(this.throttle)  + '% \nBraking: ' + round(this.brake)  + '% \nFlaps: ' + round(this.flaps)  + '% \nAfterBurn: ' + round(this.afterBurn)  + '% \nSpoiler: ' + round(this.spoiler)  + '% \n', width/2 -100, height/2 - 160);
@@ -266,7 +266,12 @@ class Plane {
         textSize(20)
         textAlign(CENTER);
         rotate(this.vAngle - PI / 2)
-        text(round(this.speed) + 'm/s', 0, 550 / 2)
+
+        if (this.speed < vSound){
+            text(round(this.speed) + 'm/s', 0, 550 / 2)
+        } else {
+            text('Mach ' + round(this.speed / vSound, 1), 0, 550 / 2)
+        }
         pop()
 
         stroke(0, 255, 0);

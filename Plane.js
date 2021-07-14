@@ -13,16 +13,19 @@ class Plane {
         this.w = 16;
         this.h = 4.5;
 
-        this.thrust = 180000;
+        this.Thrust = 191000;
         this.coreExhaustVelocity = 400;
         this.afterBurnerAddition = 200;
         this.fanExhaustVelocity = 540;
-        this.offset = 1/3 * this.coreExhaustVelocity;
+
 
 
         this.intakeDiameter = 1.5;
         this.fuelRatio = 0.02;
         this.bypassRatio = 0.55;
+
+        this.suction = this.Thrust / (((this.intakeDiameter ** 2)/4) * PI * (1/(airDensityOffset) + airDensityC) * (this.coreExhaustVelocity* (1 + this.fuelRatio)));
+        console.log(this.suction);
 
         this.minDrag = 0.016;
 
@@ -43,12 +46,6 @@ class Plane {
 
         this.maxAngle = 1;
         this.stabilityRange = 1;
-
-        const options = {
-            frictionAir:0,
-            friction:0,
-            restitution:0
-        }
 
 
         this.position = new p5.Vector(x, y)
@@ -119,11 +116,11 @@ class Plane {
     
         }
 
-        if (this.airSpeed > -this.offset){ 
+        if (this.airSpeed > -this.suction){ 
 
-            this.massFlowRate = Math.max(0, this.airDensity * (this.intakeDiameter ** 2)/4 * (this.airSpeed + this.offset));
+            this.massFlowRate = Math.max(0, this.airDensity * (this.intakeDiameter ** 2)/4 * PI * (this.airSpeed + this.suction));
 
-            this.thrust = Math.max(0, this.massFlowRate* Math.max(0,((this.coreExhaustVelocity + (this.afterBurnerAddition * this.afterBurn /100))* (1 + this.fuelRatio) * (this.throttle / 100) ) - this.airSpeed))
+            this.thrust = Math.max(0, this.massFlowRate* Math.max(0,((this.coreExhaustVelocity + (this.afterBurnerAddition * this.afterBurn /100))* (1 + this.fuelRatio) * (this.throttle / 100) ) - Math.max(0, this.airSpeed)))
 
         } else{
 

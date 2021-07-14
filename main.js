@@ -1,4 +1,4 @@
-const {Engine, Bodies, MouseConstraint, World, Mouse, Constraint, Body, Vector, Composite} = Matter;
+
 const tScale =0.65;
 const mScale = 1;
 const g = 9.81
@@ -6,15 +6,14 @@ const g = 9.81
 const airDensity = 1.225;
 
 const airDensityOffset = 0.8;
-const airDensityMultiplier = 5000;
+const airDensityMultiplier = 2000;
+const airDensityC = -0.002;
 
 const responsiveness = 1.1;
 const pitchResponsiveness = 5;
 
-let ground;
-let boxes = [];
+
 let plane;
-let world,engine;
 let canvas;
 
 let boxImg;
@@ -30,44 +29,12 @@ function preload(){
 function setup() {
 
     canvas = createCanvas(innerWidth, innerHeight);
-    console.log(Matter);
 
-
-    const options = {
-
-        gravity:{
-            scale:1,
-            y:0
-        }
-    }
-
-    engine = Engine.create(options);
-    world = engine.world;
-
-
-    ground = new Ground(0, height+100, width * 2000, 200);
-
-    // for (let u=0; u<4; u++){
-
-    //     for (let i=0; i<8; i++){
-    //         boxes.push(new Box(1000 + u * 65, height - (i * 60), 60, 60));
-    //     }
-    // }
-
-    plane = new Plane(350, height-10, 0.05);
+    plane = new Plane(350, height-40, 0.05);
 
 }
 
-// function keyPressed(){
 
-//     if (keyCode == LEFT_ARROW){
-
-//         while (keyIsPressed === true){
-
-//             plane.rotate(-0.05);
-//         }
-//     }
-// }
 
 
 function draw() {
@@ -135,27 +102,17 @@ function draw() {
         plane.spoiler = 0;
     }
 
-    // }  else if (keyIsDown(ENTER)){
-
-    //     plane.update();
-    //     Engine.update(engine);
-    // }
-
-    Engine.update(engine);
     plane.update();
 
     background(255);
     translate(innerWidth/2, innerHeight/2);
-    rotate(-plane.body.angle * 1);
+    rotate(-plane.angle * 1);
     translate(-innerWidth/2, -innerHeight/2);
 
-    translate(-plane.body.position.x + (innerWidth/2), -plane.body.position.y+ (innerHeight/2));
+    translate(-plane.position.x + (innerWidth/2), -plane.position.y+ (innerHeight/2));
 
 
-    ground.show();
-    for (let box of boxes){
-        box.show();
-    }
+    line(-width * 1000, height, width * 10000, height)
 
     plane.show();
 

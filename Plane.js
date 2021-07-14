@@ -14,7 +14,7 @@ class Plane {
         this.h = 4.5;
 
         this.thrust = 180000;
-        this.coreExhaustVelocity = 340;
+        this.coreExhaustVelocity = 400;
         this.afterBurnerAddition = 200;
         this.fanExhaustVelocity = 540;
         this.offset = 1/3 * this.coreExhaustVelocity;
@@ -50,43 +50,35 @@ class Plane {
             restitution:0
         }
 
-        this.body = Bodies.rectangle(x, y, this.w, this.h, options);
-        
-        Body.setMass(this.body, this.mass)
-        Composite.add(world, this.body)
 
-        this.idealAngle = this.body.angle;
+        this.position = new p5.Vector(x, y)
+        this.velocity = new p5.Vector(0, 0);
+        this.angle = 0;
 
-
-
-
-        // Body.setVelocity(this.body, {x:3, y:0});
     
     }
 
     update(){
 
-        this.stabilise();
 
         angleMode(RADIANS)
 
-        var velocity = new p5.Vector(this.body.velocity.x, this.body.velocity.y)
-        this.velocityAngle = velocity.heading();
+        this.velocityAngle = this.velocity.heading();
 
 
-        this.altitude = height - this.body.position.y
+        this.altitude = height - this.position.y
 
-        this.airDensity = 1/((this.altitude / airDensityMultiplier) + airDensityOffset);
-
-        if (velocity.mag() > 0){
-
-            const force = p5.Vector.fromAngle(this.body.angle, 1);
-
-            this.angleOfAttack = force.angleBetween(velocity);
+        this.airDensity = Math.max(0, 1/((this.altitude / airDensityMultiplier) + airDensityOffset) + airDensityC);
 
 
-            this.airSpeed = (cos(this.angleOfAttack) * velocity.mag());
-            this.speed = this.body.speed
+        if (this.velocity.mag() > 0){
+
+            var force = p5.Vector.fromAngle(this.angle, 1);
+
+            this.angleOfAttack = force.angleBetween(this.velocity);
+
+            this.speed = this.velocity.mag()
+            this.airSpeed = (cos(this.angleOfAttack) * this.speed);
 
             this.dragCoefficient = this.dragMultiplier * (1- cos(2* this.angleOfAttack)) + this.minDrag + (this.flapDrag * this.flaps / 100) + (this.spoilerDrag * this.spoiler / 100)
 
@@ -98,8 +90,8 @@ class Plane {
             }
 
             this.liftCoefficient = (1.5599376454047093 / (10 ** 18)) * (A ** 10) - (1.2817626387384176 / (10 ** 15)) * (A ** 9) + (4.3711814292424807 / (10 ** 13)) * (A ** 8) - (7.9320282453665939 / (10 ** 11)) * (A ** 7) + (8.0646679763492981 / (10 ** 9)) * (A ** 6) - (4.2358155634570111 / (10 ** 7)) * (A ** 5) + (5.9484212356433018 / (10 ** 6)) * (A ** 4) + (4.4487443870946638 / (10 ** 4)) * (A ** 3) - (2.1180232557629925 / (10 ** 2)) * (A ** 2) + (2.9684208383947552 / (10)) * (A) + (3.5589068758850130 / (10 ** 2)) + (this.flapLift * this.flaps / 100) - (this.spoilerLift * this.spoiler / 100)
-        
-            this.lift = this.airDensity * this.liftCoefficient * this.wingArea * (this.speed  ** 2) / 2
+            
+            this.lift = this.airDensity * this.liftCoefficient * this.wingArea * (this.speed  ** 2) / 2;
 
             if (this.brake > 0){
                 this.brakeCoefficient = (1 - cos(2* this.angleOfAttack - PI)) * this.brakeMultiplier * (this.brake/100)
@@ -114,7 +106,7 @@ class Plane {
 
         } else {
 
-
+            this.speed = 0;
             this.airSpeed = 0; 
             this.angleOfAttack = 0;
             this.velocityAngle = 0;
@@ -131,7 +123,7 @@ class Plane {
 
             this.massFlowRate = Math.max(0, this.airDensity * (this.intakeDiameter ** 2)/4 * (this.airSpeed + this.offset));
 
-            this.thrust = Math.max(0, this.massFlowRate*(((this.coreExhaustVelocity + (this.afterBurnerAddition * this.afterBurn /100))* (1 + this.fuelRatio) * (this.throttle / 100) ) - this.airSpeed))
+            this.thrust = Math.max(0, this.massFlowRate* Math.max(0,((this.coreExhaustVelocity + (this.afterBurnerAddition * this.afterBurn /100))* (1 + this.fuelRatio) * (this.throttle / 100) ) - this.airSpeed))
 
         } else{
 
@@ -142,11 +134,11 @@ class Plane {
 
         var dragV = p5.Vector.fromAngle(this.velocityAngle, -this.drag * (tScale ** 2) / this.mass);
         var liftV = p5.Vector.fromAngle(this.velocityAngle - PI/2 , this.lift * (tScale ** 2)  / this.mass);
-        var thrustV = p5.Vector.fromAngle(this.body.angle, this.thrust * (tScale ** 2)  /this.mass);
+        var thrustV = p5.Vector.fromAngle(this.angle, this.thrust * (tScale ** 2)  /this.mass);
 
 
         var combination = thrustV.add(dragV.add(liftV))
-        this.acceleration = combination.mag() / g
+
 
         if (this.altitude > 0){
 
@@ -159,40 +151,47 @@ class Plane {
 
         }
 
+        combination.add(new p5.Vector(0, Math.min(g * (tScale ** 2), -1 * (this.velocity.y + combination.y) + this.altitude)));
+        
+
+        this.acceleration = combination.mag() / g
         this.accelerationAngle = combination.heading();
 
 
-        Body.setVelocity(this.body, velocity.add(combination));
+        this.velocity.add(combination);
+
+        // stabilise
+        var force = p5.Vector.fromAngle(this.angle, 1);
+        var newAA = force.angleBetween(this.velocity);
+
+        if (Math.sign(newAA) != Math.sign(this.angleOfAttack) && this.angleOfAttack!= 0 && newAA != 0){
+
+            this.velocity = p5.Vector.fromAngle(this.angle, cos(newAA) * this.velocity.mag());
+            this.angleOfAttack = 0;
+        }
+
+
+        this.position.add(this.velocity);
+
+        // check if below ground
+
 
         // calculations for indicator rings
 
 
-        this.gAngle = -this.body.angle + PI/2;
-        this.vAngle =  this.velocityAngle - this.body.angle;
-        this.aAngle = this.accelerationAngle - this.body.angle;
+        this.gAngle = -this.angle + PI/2;
+        this.vAngle =  this.velocityAngle - this.angle;
+        this.aAngle = this.accelerationAngle - this.angle;
 
 
 
-    }
-
-    stabilise(){
-
-        // var difference = Math.abs(this.body.angle - this.idealAngle)
-        // if (difference < this.stabilityRange){
-        //     var adjustment = Math.min(Math.abs(this.body.angle - this.idealAngle), this.maxAngle);
-        //     var sign = Math.sign(this.body.angle - this.idealAngle);
-
-        //     Body.rotate(this.body, adjustment * sign * -1, this.body.position);
-        // }
-
-        var difference = -this.body.angle + this.idealAngle
-        Body.rotate(this.body, difference, this.body.position);
 
     }
+
 
     rotate(angle){
 
-        this.idealAngle += angle;
+        this.angle += angle;
 
     }
 
@@ -200,8 +199,8 @@ class Plane {
     
 
 
-        const pos = this.body.position;
-        const angle = this.body.angle; 
+        const pos = this.position;
+        const angle = this.angle; 
 
         push();
 
@@ -270,7 +269,7 @@ class Plane {
         textSize(20)
         textAlign(CENTER);
         rotate(this.vAngle - PI / 2)
-        text(round(this.body.speed) + 'm/s', 0, 550 / 2)
+        text(round(this.speed) + 'm/s', 0, 550 / 2)
         pop()
 
         stroke(0, 255, 0);
@@ -290,11 +289,11 @@ class Plane {
 
         stroke(0);
 
-        if (Math.abs(this.body.angle) > 0.005){
-            if (this.body.angle < 0){
-                arc(0 , 0, 400, 400, 0, -this.body.angle);
-            } else if (this.body.angle > 0){
-                arc(0 , 0, 400, 400, -this.body.angle, 0);
+        if (Math.abs(this.angle) > 0.005){
+            if (this.angle < 0){
+                arc(0 , 0, 400, 400, 0, -this.angle);
+            } else if (this.angle > 0){
+                arc(0 , 0, 400, 400, -this.angle, 0);
             }
 
         }
@@ -305,7 +304,7 @@ class Plane {
         textSize(20)
         textAlign(CENTER);
         rotate(0 - PI / 2)
-        text(round(degrees(this.body.angle * -1)) , 0, 450 / 2)
+        text(round(degrees(this.angle * -1)) , 0, 450 / 2)
         pop()
 
 

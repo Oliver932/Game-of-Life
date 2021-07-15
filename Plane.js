@@ -170,8 +170,12 @@ class Plane {
 
         this.position.add(this.velocity);
 
-        // check if below ground
 
+
+        // create Trail
+        if (this.throttle > 0){
+            createTrails(this.position.x, this.position.y, this.velocity.x, this.velocity.y)
+        }
 
         // calculations for indicator rings
 
@@ -289,7 +293,7 @@ class Plane {
         text(round(this.acceleration,2) + 'g', 0, 650 / 2)
         pop()
 
-        stroke(0);
+        stroke(255);
 
         if (Math.abs(this.angle) > 0.005){
             if (this.angle < 0){
@@ -302,7 +306,7 @@ class Plane {
 
         push()
         noStroke();
-        fill(0)
+        fill(255)
         textSize(20)
         textAlign(CENTER);
         rotate(0 - PI / 2)

@@ -105,7 +105,9 @@ function draw() {
 
     plane.update();
 
-    background(148, 250, 255);
+    background(0);
+
+    push()
     translate(innerWidth/2, innerHeight/2);
     rotate(-plane.angle * 1);
     translate(-innerWidth/2, -innerHeight/2);
@@ -114,11 +116,23 @@ function draw() {
 
 
     stroke(0);
-    fill(33, 181, 45);
+    fill(255);
     rect(-width * 1000, height, width * 10000, width)
+
+
+    for (let index = 0; index < Trails.length; index++) {
+        const trail = Trails[index];
+        deleted = trail.show();
+        
+        if (deleted){
+            index--
+        }
+        
+    }
 
     plane.show();
 
+    pop();
 
 }
 

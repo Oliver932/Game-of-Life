@@ -10,8 +10,8 @@ class Plane {
         this.afterBurn = 0;
         this.spoiler = 0;
 
-        this.w = 16;
-        this.h = 4.5;
+        this.w = 16
+        this.h = 4.5
 
         this.Thrust = 191000;
         this.coreExhaustVelocity = 400;
@@ -120,7 +120,9 @@ class Plane {
 
             this.massFlowRate = Math.max(0, this.airDensity * (this.intakeDiameter ** 2)/4 * PI * (this.airSpeed + this.suction));
 
-            this.thrust = Math.max(0, this.massFlowRate* Math.max(0,((this.coreExhaustVelocity + (this.afterBurnerAddition * this.afterBurn /100))* (1 + this.fuelRatio) * (this.throttle / 100) ) - Math.max(0, this.airSpeed)))
+            this.exhaust = Math.max(0,((this.coreExhaustVelocity + (this.afterBurnerAddition * this.afterBurn /100))* (1 + this.fuelRatio) * (this.throttle / 100) ) - Math.max(0, this.airSpeed))
+
+            this.thrust = Math.max(0, this.massFlowRate*this.exhaust)
 
         } else{
 
@@ -173,8 +175,14 @@ class Plane {
 
 
         // create Trail
+
         if (this.throttle > 0){
-            createTrails(this.position.x, this.position.y, this.velocity.x, this.velocity.y)
+
+            var exhaustV = p5.Vector.fromAngle(this.angle, -this.exhaust);
+            // createTrails(this.position.x, this.position.y, this.velocity.x, this.velocity.y, exhaustV, this.throttle)
+            // new Point(this.position.x, this.position.y, exhaustV);
+
+            createPoints(this.position.x, this.position.y, this.velocity, exhaustV, this.throttle)
         }
 
         // calculations for indicator rings
@@ -205,6 +213,7 @@ class Plane {
 
         push();
 
+
         //DrawPlane
 
         translate(pos.x, pos.y);
@@ -216,6 +225,15 @@ class Plane {
 
         //DrawStats
 
+        scale(1 / dScale);
+
+        push()
+        fill(255);
+        noStroke();
+        rectMode(CORNER)
+        rect (-width/2 +10, height/2 - 170, 110, 130)
+        rect (width/2 -100, height/2 - 170, 75, 70)
+        pop()
         
         textSize(10);
         stroke(0)

@@ -1,6 +1,7 @@
 
 const tScale =0.65;
 const mScale = 1;
+const dScale = 0.15;
 const g = 9.81
 const vSound = 343;
 
@@ -108,27 +109,22 @@ function draw() {
     background(0);
 
     push()
+
     translate(innerWidth/2, innerHeight/2);
+
+    scale(dScale);
     rotate(-plane.angle * 1);
     translate(-innerWidth/2, -innerHeight/2);
 
     translate(-plane.position.x + (innerWidth/2), -plane.position.y+ (innerHeight/2));
 
 
+
     stroke(0);
     fill(255);
-    rect(-width * 1000, height, width * 10000, width)
+    rect(-width * 1000, height, width * 10000, width / dScale)
 
-
-    for (let index = 0; index < Trails.length; index++) {
-        const trail = Trails[index];
-        deleted = trail.show();
-        
-        if (deleted){
-            index--
-        }
-        
-    }
+    drawPoints();
 
     plane.show();
 

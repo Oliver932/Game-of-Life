@@ -1,5 +1,5 @@
 
-const tScale =0.65;
+const tScale =1;
 const mScale = 1;
 const dScale = 0.15;
 const g = 9.81
@@ -13,6 +13,10 @@ const airDensityC = -0.002;
 
 const responsiveness = 1.1;
 const pitchResponsiveness = 5;
+
+const fuelMassPerLitre = 0.8
+const fuelEnergyPerKg = 12000 * (60**2)
+
 
 
 let plane;
@@ -61,7 +65,10 @@ function draw() {
     
     if (keyIsDown(UP_ARROW)) {
 
-        plane.throttle = Math.min(100, plane.throttle + 1);
+        if (plane.fuelMass > 0){
+
+            plane.throttle = Math.min(100, plane.throttle + 1);
+        }
 
     } else if (keyIsDown(DOWN_ARROW)) {
 

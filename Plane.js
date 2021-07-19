@@ -32,7 +32,8 @@ class Plane {
         this.brakeMultiplier = 1.2;
         this.brakeArea = 6;
 
-        this.dragMultiplier = 2/3;
+        // this.dragMultiplier = 2/3;
+        this.dragMultiplier = 1;
 
         this.flapLift = 1;
         this.flapDrag = 1.3;
@@ -40,7 +41,10 @@ class Plane {
         this.spoilerLift = 0.3;
         this.spoilerDrag = 1.05;
 
-        this.mass = 21000;
+        this.baseMass = 15000;
+        this.maxFuelMass = 8000;
+        this.fuelMass = this.maxFuelMass;
+        this.mass = this.baseMass + this.fuelMass
         this.wingArea = 45;
         this.frontalArea = 5;
 
@@ -62,10 +66,12 @@ class Plane {
 
         this.velocityAngle = this.velocity.heading();
 
-
         this.altitude = height - this.position.y
 
         this.airDensity = Math.max(0, 1/((this.altitude / airDensityMultiplier) + airDensityOffset) + airDensityC);
+
+        this.mass = this.baseMass + this.fuelMass;
+
 
 
         if (this.velocity.mag() > 0){
@@ -76,6 +82,7 @@ class Plane {
 
             this.speed = this.velocity.mag()
             this.airSpeed = (cos(this.angleOfAttack) * this.speed);
+
 
             this.dragCoefficient = this.dragMultiplier * (1- cos(2* this.angleOfAttack)) + this.minDrag + (this.flapDrag * this.flaps / 100) + (this.spoilerDrag * this.spoiler / 100)
 
@@ -116,7 +123,7 @@ class Plane {
     
         }
 
-        if (this.airSpeed > -this.suction){ 
+        if (this.airSpeed > -this.suction && this.fuelMass > 0){ 
 
             this.massFlowRate = Math.max(0, this.airDensity * (this.intakeDiameter ** 2)/4 * PI * (this.airSpeed + this.suction));
 
@@ -124,11 +131,42 @@ class Plane {
 
             this.thrust = Math.max(0, this.massFlowRate*this.exhaust)
 
+            // additional calculations for fuel consumption
+
+            if (this.airSpeed > 0){
+
+                this.power = this.thrust * this.airSpeed;
+
+                this.efficiency = Math.min(1, 2/(1 + ((this.coreExhaustVelocity + this.afterBurnerAddition)/ this.airSpeed)))
+
+                this.fuelConsumption = Math.max(0, this.power / (this.efficiency * fuelEnergyPerKg))
+
+                this.fuelMass -= this.fuelConsumption
+
+                if (this.fuelMass < 0){
+
+                    this.fuelMass = 0;
+                    this.throttle = 0;
+                    
+                }
+
+            } else {
+
+                this.power = 0;
+                this.efficiency = 1;
+                this.fuelConsumption = 0;
+            }
+
+
         } else{
 
             this.massFlowRate = 0;
 
             this.thrust = 0;
+
+            this.power = 0;
+            this.efficiency = 1;
+            this.fuelConsumption = 0;
         }
 
         var dragV = p5.Vector.fromAngle(this.velocityAngle, -this.drag * (tScale ** 2) / this.mass);
@@ -231,14 +269,14 @@ class Plane {
         fill(255);
         noStroke();
         rectMode(CORNER)
-        rect (-width/2 +10, height/2 - 170, 110, 130)
+        rect (-width/2 +10, height/2 - 170, 110, 160)
         rect (width/2 -100, height/2 - 170, 75, 70)
         pop()
         
         textSize(10);
         stroke(0)
         fill(0)
-        text('AirDensity: ' + round(this.airDensity,2) + 'Kg/m**3 \nAirSpeed: ' + round(this.airSpeed,2)  + 'm/s \nDc: ' + round(this.dragCoefficient,2) + ' \nDrag: ' + round(this.drag / 1000,2)  + 'kN \nLc: ' + round(this.liftCoefficient,2) + ' \nLift: ' + round(this.lift/1000,2)  + 'kN \nMFR: ' + round(this.massFlowRate,2) + 'kg/s \nThrust: ' + round(this.thrust / 1000,2) + 'kN\nBc: ' + round(this.brakeCoefficient,2) + '\nBraking: ' + round(this.braking/1000,2) + 'kN', -width/2 +10, height/2 - 160);
+        text('AirDensity: ' + round(this.airDensity,2) + 'Kg/m**3 \nAirSpeed: ' + round(this.airSpeed,2)  + 'm/s \nDc: ' + round(this.dragCoefficient,2) + ' \nDrag: ' + round(this.drag / 1000,2)  + 'kN \nLc: ' + round(this.liftCoefficient,2) + ' \nLift: ' + round(this.lift/1000,2)  + 'kN \nMFR: ' + round(this.massFlowRate,2) + 'kg/s \nThrust: ' + round(this.thrust / 1000,2) + 'kN\nBc: ' + round(this.brakeCoefficient,2) + '\nBraking: ' + round(this.braking/1000,2) + 'kN\nPower: ' + round(this.power/1000000,2) + 'mW\nEfficiency: ' + round(this.efficiency * 100,2) + '%\nFuelConsumption: ' + round(this.fuelConsumption / fuelMassPerLitre,2) + 'l/s', -width/2 +10, height/2 - 160);
 
 
         text('Throttle: ' + round(this.throttle)  + '% \nBraking: ' + round(this.brake)  + '% \nFlaps: ' + round(this.flaps)  + '% \nAfterBurn: ' + round(this.afterBurn)  + '% \nSpoiler: ' + round(this.spoiler)  + '% \n', width/2 -100, height/2 - 160);
@@ -329,6 +367,26 @@ class Plane {
         textAlign(CENTER);
         rotate(0 - PI / 2)
         text(round(degrees(this.angle * -1)) , 0, 450 / 2)
+        pop()
+
+        // fuelRing
+
+
+        push()
+        stroke(255, 165, 0)
+        translate(width * 2/6, height * 2/6)
+
+        arc(0, 0, 100, 100, -PI/2, ((this.fuelMass / this.maxFuelMass) * PI * 2) - PI/2)
+
+        noStroke();
+        fill(255, 165, 0);
+        textSize(20);
+        textAlign(CENTER);
+        text(round(this.fuelMass / fuelMassPerLitre) + 'L' , 0, 0)
+
+        textSize(12);
+        text(round(this.fuelConsumption / fuelMassPerLitre, 2) + 'L/s' , 0, 15)
+
         pop()
 
 
